@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>3D Terrain</title>
+    <meta
+      property="og:description"
+      content="Go beyond hillshade and show elevation in actual 3D."
+    />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/maplibre-gl@5.8.0/dist/maplibre-gl.css"
+    />
+    <script src="https://unpkg.com/maplibre-gl@5.8.0/dist/maplibre-gl.js"></script>
+    <script src="./css/style.css"></script>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      const api_key = "yAMHIz7ycKM0REGSB6Q5";
+      const layers = [
+        {
+          id: "satellite",
+          type: "raster",
+          source: "satellite",
+          minzoom: 0,
+          maxzoom: 22,
+        },
+        {
+          id: "hillshade",
+          type: "hillshade",
+          source: "hillshadeSource",
+          paint: {
+            "hillshade-shadow-color": "rgba(0, 0, 0, 0.5)",
+            "hillshade-highlight-color": "rgba(255, 255, 255, 0.5)",
+            "hillshade-accent-color": "rgba(130, 130, 130, 0.5)",
+          },
+        },
+      ];
+      const style = {
+        version: 8,
+        sources: {
+          satellite: {
+            type: "raster",
+            tiles: [
+              "https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=" +
+                api_key,
+            ],
+            tileSize: 256,
+            attribution: "&copy; MapTiler",
+            maxzoom: 19,
+          },
+          terrainSource: {
+            type: "raster-dem",
+            url: `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${api_key}`,
+            tileSize: 256,
+          },
+          hillshadeSource: {
+            type: "raster-dem",
+            url: `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${api_key}`,
+            tileSize: 256,
+          },
+        },
+        layers: layers,
+        terrain: { source: "terrainSource" },
+      };
+      const map = (window.map = new maplibregl.Map({
+        container: "map",
+        zoom: 12,
+        center: [51.0447, -114.0719],
+        pitch: 70,
+        hash: true,
+        style: style,
+      }));
+
+      map.addControl(
+        new maplibregl.NavigationControl({
+          visualizePitch: true,
+          showZoom: true,
+          showCompass: true,
+        })
+      );
+
+      map.addSource("terrain-source", {
+        type: "raster-dem",
+        url: "https://demotiles.maplibre.org/terrain-tiles/tiles.json", // replace with global DEM
+        tileSize: 512,
+        maxzoom: 14,
+      });
+
+      map.setTerrain({ source: "terrain-source", exaggeration: 1.2 });
+
+      map.addControl(
+        new maplibregl.TerrainControl({
+          source: "terrainSource",
+          exaggeration: 1,
+        })
+      );
+    </script>
+  </body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>3D Terrain</title>
+    <meta
+      property="og:description"
+      content="Go beyond hillshade and show elevation in actual 3D."
+    />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/maplibre-gl@5.8.0/dist/maplibre-gl.css"
+    />
+    <script src="https://unpkg.com/maplibre-gl@5.8.0/dist/maplibre-gl.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body,
+      #map {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      const api_key = "yAMHIz7ycKM0REGSB6Q5";
+      const layers = [
+        {
+          id: "satellite",
+          type: "raster",
+          source: "satellite",
+          minzoom: 0,
+          maxzoom: 22,
+        },
+        {
+          id: "hillshade",
+          type: "hillshade",
+          source: "hillshadeSource",
+          paint: {
+            "hillshade-shadow-color": "rgba(0, 0, 0, 0.5)",
+            "hillshade-highlight-color": "rgba(255, 255, 255, 0.5)",
+            "hillshade-accent-color": "rgba(130, 130, 130, 0.5)",
+          },
+        },
+      ];
+      const style = {
+        version: 8,
+        sources: {
+          // satellite: {
+          //   type: "raster",
+          //   tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+          //   tileSize: 256,
+          //   attribution: "&copy; OpenStreetMap contributors",
+          //   maxzoom: 19,
+          // },
+          satellite: {
+            type: "raster",
+            tiles: [
+              "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            ],
+            tileSize: 256,
+            attribution: "Source: Esri, Maxar, Earthstar Geographics",
+          },
+
+          terrainSource: {
+            type: "raster-dem",
+            tiles: [
+              "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
+            ],
+            tileSize: 256,
+            attribution: "Terrain data © Mapzen, AWS, and contributors",
+            encoding: "terrarium",
+          },
+          hillshadeSource: {
+            type: "raster-dem",
+            tiles: [
+              "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
+            ],
+            tileSize: 256,
+          },
+        },
+        layers: layers,
+        terrain: { source: "terrainSource" },
+      };
+      const map = (window.map = new maplibregl.Map({
+        container: "map",
+        zoom: 12,
+        center: [-114.0719, 51.0447],
+        pitch: 70,
+        hash: true,
+        style: style,
+      }));
+
+      map.addControl(
+        new maplibregl.NavigationControl({
+          visualizePitch: true,
+          showZoom: true,
+          showCompass: true,
+        })
+      );
+
+      // map.addSource("terrain-source", {
+      //   type: "raster-dem",
+      //   url: "https://demotiles.maplibre.org/terrain-tiles/tiles.json", // replace with global DEM
+      //   tileSize: 512,
+      //   maxzoom: 14,
+      // });
+
+      // map.setTerrain({ source: "terrain-source", exaggeration: 1.2 });
+
+      map.addControl(
+        new maplibregl.TerrainControl({
+          source: "terrainSource",
+          exaggeration: 1,
+        })
+      );
+    </script>
+  </body>
+</html>
