@@ -3,18 +3,173 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MapLibre Satellite Map with Terrain</title>
+    <title>GPX Track Visualizer - Cinematic Flyovers</title>
     <link
       rel="stylesheet"
       href="https://unpkg.com/maplibre-gl@5.8.0/dist/maplibre-gl.css"
     />
-    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
-    <div id="map"></div>
+    <div id="app">
+      <div id="upload-container" class="upload-section">
+        <div class="upload-box">
+          <h1>GPX Track Visualizer</h1>
+          <p>Upload your GPX file to create cinematic 3D flyovers</p>
+          <div class="drop-zone" id="dropZone">
+            <svg
+              width="64"
+              height="64"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p>Drag & Drop GPX file here</p>
+            <p class="or-text">or</p>
+            <button class="browse-btn" id="browseBtn">Browse Files</button>
+            <input type="file" id="fileInput" accept=".gpx" hidden />
+          </div>
+        </div>
+      </div>
+
+      <div id="main-container" class="main-section hidden">
+        <div class="header">
+          <h2 id="trackName">Track Name</h2>
+          <button class="export-btn" id="exportBtn">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-15"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export Video
+          </button>
+        </div>
+
+        <div class="content-grid">
+          <div class="left-panel">
+            <div class="metrics-card">
+              <h3>Track Metrics</h3>
+              <div class="metrics-grid" id="metricsGrid">
+                <div class="metric-item">
+                  <span class="metric-label">Distance</span>
+                  <span class="metric-value" id="metricDistance">-</span>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-label">Duration</span>
+                  <span class="metric-value" id="metricDuration">-</span>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-label">Elevation Gain</span>
+                  <span class="metric-value" id="metricElevation">-</span>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-label">Avg Speed</span>
+                  <span class="metric-value" id="metricSpeed">-</span>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-label">Avg Heart Rate</span>
+                  <span class="metric-value" id="metricHeartRate">-</span>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-label">Avg Pace</span>
+                  <span class="metric-value" id="metricPace">-</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="elevation-card">
+              <h3>Elevation Profile</h3>
+              <canvas id="elevationChart"></canvas>
+            </div>
+          </div>
+
+          <div class="right-panel">
+            <div id="map"></div>
+            <div class="controls-overlay">
+              <button class="control-btn" id="restartBtn" title="Restart">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="1 4 1 10 7 10"></polyline>
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                </svg>
+              </button>
+              <button class="control-btn" id="playBtn">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </button>
+              <button class="control-btn hidden" id="pauseBtn">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <rect x="6" y="4" width="4" height="16" />
+                  <rect x="14" y="4" width="4" height="16" />
+                </svg>
+              </button>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+                <div class="progress-dot" id="progressDot"></div>
+              </div>
+              <div class="speed-control">
+                <label>Speed:</label>
+                <select id="speedSelect">
+                  <option value="0.5">0.5x</option>
+                  <option value="1">1x</option>
+                  <option value="2">2x</option>
+                  <option value="3">3x</option>
+                  <option value="5" selected>5x</option>
+                  <option value="10">10x</option>
+                </select>
+              </div>
+            </div>
+            <div class="map-overlay" id="mapOverlay">
+              <div class="overlay-metric">
+                Distance: <span id="overlayDistance">0.00 km</span>
+              </div>
+              <div class="overlay-metric">
+                Elevation: <span id="overlayElevation">0 m</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script src="https://unpkg.com/maplibre-gl@5.8.0/dist/maplibre-gl.js"></script>
-    <script src="./js/api_key.js"></script>
-    <script src="./js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.min.js"></script>
+    <script src="js/gpx-parser.js"></script>
+    <script src="js/metrics-calculator.js"></script>
+    <script src="js/elevation-chart.js"></script>
+    <script src="js/map-animator.js"></script>
+    <script src="js/video-exporter.js"></script>
+    <script src="js/app.js"></script>
   </body>
 </html>
